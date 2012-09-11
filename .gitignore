@@ -28,6 +28,19 @@ local.properties
 # PDT-specific
 .buildpath
 
+# ADT-specific
+# built application files
+*.apk
+*.ap_
+
+# generated files
+gen/
+
+# files for the dex VM
+*.dex
+
+# Java class files
+*.class
 
 #################
 ## Visual Studio
