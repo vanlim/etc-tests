@@ -1,0 +1,54 @@
+
+texmap.png
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+player
+  rotate: false
+  xy: 2, 2
+  size: 136, 68
+  orig: 136, 68
+  offset: 0, 0
+  index: -1
+player-trans
+  rotate: false
+  xy: 140, 2
+  size: 136, 68
+  orig: 136, 68
+  offset: 0, 0
+  index: -1
+path
+  rotate: false
+  xy: 278, 2
+  size: 136, 68
+  orig: 136, 68
+  offset: 0, 0
+  index: -1
+path-trans
+  rotate: false
+  xy: 416, 2
+  size: 136, 68
+  orig: 136, 68
+  offset: 0, 0
+  index: -1
+ground
+  rotate: false
+  xy: 554, 2
+  size: 136, 68
+  orig: 136, 68
+  offset: 0, 0
+  index: -1
+grid
+  rotate: false
+  xy: 692, 2
+  size: 136, 68
+  orig: 136, 68
+  offset: 0, 0
+  index: -1
+cursor
+  rotate: false
+  xy: 830, 2
+  size: 136, 68
+  orig: 136, 68
+  offset: 0, 0
+  index: -1

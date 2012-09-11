@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<languages>
+   <!-- English -->
+   <language name="en_UK" >
+      <!--  Menu  -->
+      <string key="font" value="roboto.fnt" />
+      <string key="fontdir" value="roboto.png" />
+      <string key="Beatsmaster" value="BEATSMASTER" />
+   </language>
+   
+   <!-- Spanish -->
+   <language name="ja_JP" >
+      <!--  Menu  -->
+      <string key="font" value="asian.fnt" />
+      <string key="fontdir" value="asian.png" />
+      <string key="Beatsmaster" value="ビートマスター" />
+   </language>
+</languages>
