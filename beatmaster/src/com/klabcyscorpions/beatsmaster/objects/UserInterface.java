@@ -1,4 +1,4 @@
-package com.cyscorpions.beatmaster.objects;
+package com.klabcyscorpions.beatsmaster.objects;
 
 public class UserInterface
 {

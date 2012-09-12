@@ -1,4 +1,4 @@
-package com.cyscorpions.beatmaster;
+package com.klabcyscorpions.beatsmaster;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
@@ -6,7 +6,7 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.cyscorpions.beatmaster.screens.GameScreen;
+import com.klabcyscorpions.beatsmaster.screens.GameScreen;
 
 public class BeatMaster extends Game
 {

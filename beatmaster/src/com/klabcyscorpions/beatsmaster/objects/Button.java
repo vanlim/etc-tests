@@ -1,4 +1,4 @@
-package com.cyscorpions.beatmaster.objects;
+package com.klabcyscorpions.beatsmaster.objects;
 
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.graphics.Camera;

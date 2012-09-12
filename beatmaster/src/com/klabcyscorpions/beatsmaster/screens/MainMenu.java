@@ -1,6 +1,6 @@
-package com.cyscorpions.beatmaster.screens;
+package com.klabcyscorpions.beatsmaster.screens;
 
-import com.cyscorpions.beatmaster.BeatMaster;
+import com.klabcyscorpions.beatsmaster.BeatMaster;
 
 public class MainMenu extends AbstractScreen
 {

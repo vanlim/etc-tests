@@ -1,8 +1,8 @@
-package com.cyscorpions.beatmaster;
+package com.klabcyscorpions.beatsmaster;
 
 import interpolationtests.InterpolationTest;
-import tests.Test;
 import android.os.Bundle;
+import android.widget.ListView;
 
 import com.badlogic.gdx.backends.android.AndroidApplication;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
@@ -15,6 +15,6 @@ public class BeatMasterAndroid extends AndroidApplication {
         AndroidApplicationConfiguration cfg = new AndroidApplicationConfiguration();
 //        cfg.useGL20 = false;
         
-        initialize(new InterpolationTest(), cfg);
+        initialize(new InterpolationTest(), cfg);       
     }
 }

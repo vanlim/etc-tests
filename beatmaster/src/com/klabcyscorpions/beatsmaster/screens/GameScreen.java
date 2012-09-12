@@ -1,4 +1,4 @@
-package com.cyscorpions.beatmaster.screens;
+package com.klabcyscorpions.beatsmaster.screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
@@ -6,8 +6,8 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.cyscorpions.beatmaster.BeatMaster;
-import com.cyscorpions.beatmaster.objects.Button;
+import com.klabcyscorpions.beatsmaster.BeatMaster;
+import com.klabcyscorpions.beatsmaster.objects.Button;
 
 public class GameScreen extends AbstractScreen
 {

@@ -1,4 +1,4 @@
-package com.cyscorpions.beatmaster.ui;
+package com.klabcyscorpions.beatsmaster.ui;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;

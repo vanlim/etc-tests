@@ -3,7 +3,9 @@ package interpolationtests;
 import java.util.ArrayList;
 import java.util.List;
 
+import aurelienribon.tweenengine.Timeline;
 import aurelienribon.tweenengine.Tween;
+import aurelienribon.tweenengine.TweenEquations;
 import aurelienribon.tweenengine.TweenManager;
 
 import com.badlogic.gdx.ApplicationListener;
@@ -23,12 +25,17 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-import com.cyscorpions.beatmaster.utils.LanguagesManager;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.klabcyscorpions.beatsmaster.utils.ImageAccessor;
+import com.klabcyscorpions.beatsmaster.utils.LanguagesManager;
+import com.klabcyscorpions.beatsmaster.utils.Vector3TweenAccessor;
 
 public class InterpolationTest implements ApplicationListener
 {
 	PerspectiveCamera camera;
 	OrthographicCamera camera2d;
+	
+	
 
 	TweenManager tweenManager;
 
@@ -69,6 +76,8 @@ public class InterpolationTest implements ApplicationListener
 	
 	LanguagesManager lang;
 
+	int length = 0;
+	
 	public InterpolationTest()
 	{
 	}
@@ -95,7 +104,7 @@ public class InterpolationTest implements ApplicationListener
 
 		texture = new Texture(Gdx.files.internal("data/libgdx.png"));
 //		texture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
-
+		
 		texture2 = new Texture(Gdx.files.internal("texture/test/black.png"));
 //		texture2.setFilter(TextureFilter.Linear, TextureFilter.Linear);
 
@@ -119,7 +128,16 @@ public class InterpolationTest implements ApplicationListener
 		
 		texture10 = new Texture(Gdx.files.internal("texture/step_right.png"));
 		
-		TextureRegion texReg = new TextureRegion(texture, 64, 64);
+		ArrayList<TextureRegion> texSet = new ArrayList<TextureRegion>();
+		
+			
+			texSet.add(new TextureRegion(texture7));
+			texSet.add(new TextureRegion(texture8));
+			texSet.add(new TextureRegion(texture9));
+			texSet.add(new TextureRegion(texture10));
+			
+		
+		TextureRegion texReg = new TextureRegion(texture, 0, 0, 512,275);
 
 		decal = Decal.newDecal(texReg, true);
 
@@ -135,9 +153,9 @@ public class InterpolationTest implements ApplicationListener
 //		lang.loadLanguage("ja_JP");		
 		System.out.print(lang.getLanguage());
 
-		for (int i = 0; i <= 5; i++)
+		for (int i = 0; i < 5; i++)
 		{
-			spline.add(new Vector3(0, 0, i * -900));
+			spline.add(new Vector3(MathUtils.random(-screenX/4, screenX/4), MathUtils.random(-screenY/2, screenY/2), length -= 900));
 		}
 		spline.getPath(curvePath, pathPointSize);
 
@@ -149,8 +167,45 @@ public class InterpolationTest implements ApplicationListener
 		
 		font3 = new BitmapFont(Gdx.files.internal("font/microgramma.fnt"), Gdx.files.internal("font/microgramma_fx.png"), false);
 		font3.getRegion().getTexture().setFilter(TextureFilter.Linear, TextureFilter.Linear);
+		
+		tex = new Image(texReg);
+		tex.setPosition(-screenX*2,-tex.getHeight()/2);
+		tex.setScaleY(1);
+		
+		arrow1 = new Image(texSet.get(0));
+		arrow1.setPosition(screenX*2, -arrow1.getHeight());
+		arrow2 = new Image(texSet.get(1));
+		arrow2.setPosition(-arrow2.getWidth(), screenY*2);
+		arrow3 = new Image(texSet.get(2));
+		arrow3.setPosition(0, -screenY*2);
+		arrow4 = new Image(texSet.get(3));
+		arrow4.setPosition(-screenX*2, -arrow4.getHeight());
+		
+		float duration = 2;
+		float delay = 0;
+		 
+		Tween.registerAccessor(Image.class, new ImageAccessor());
+		
+		Timeline.createSequence()
+			.push(Tween.to(tex, ImageAccessor.position_x, duration).target(-tex.getWidth()/2).ease(TweenEquations.easeInOutExpo))
+			
+			.beginParallel()
+				.push(Tween.to(tex, ImageAccessor.position_y, 1).target(0))
+				.push(Tween.to(arrow1, ImageAccessor.position_x, 1).target(-arrow1.getWidth()*2).ease(TweenEquations.easeInOutExpo).delay(delay+=0.1f))
+				.push(Tween.to(arrow2, ImageAccessor.position_y, 1).target(-arrow2.getHeight()).ease(TweenEquations.easeInOutExpo).delay(delay+=0.1f))
+				.push(Tween.to(arrow3, ImageAccessor.position_y, 1).target(-arrow2.getHeight()).ease(TweenEquations.easeInOutExpo).delay(delay+=0.1f))
+				.push(Tween.to(arrow4, ImageAccessor.position_x, 1).target(arrow4.getWidth()).ease(TweenEquations.easeInOutExpo).delay(delay+=0.1f))
+			.end()
+		.start(tweenManager);
+		
 	}
 
+	Image tex;
+	Image arrow1;
+	Image arrow2;
+	Image arrow3;
+	Image arrow4;
+	
 	@Override
 	public void resize(int width, int height)
 	{
@@ -158,7 +213,6 @@ public class InterpolationTest implements ApplicationListener
 
 	}
 
-	int length = -4400;
 	Decal dec;
 	int idx = 1;
 	int pathPointSize = 100;
@@ -176,19 +230,20 @@ public class InterpolationTest implements ApplicationListener
 	@Override
 	public void render()
 	{
-		// tweenManager.update(deltaTime);
-
+		deltaTime = Gdx.graphics.getDeltaTime();
+		tweenManager.update(deltaTime);
+		
 		camera.update();
 
 		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
 		Gdx.gl10.glClearColor(0.2f, 0.2f, 0.2f, 1);
 
-		deltaTime = Gdx.graphics.getDeltaTime();
-
 		batch.setProjectionMatrix(camera.combined);
 		batch.begin();
 		batch.end();
 
+		
+		
 		// if (Gdx.input.isTouched() && touchOnce)
 		// {
 		// curvePath.clear();
@@ -410,6 +465,15 @@ public class InterpolationTest implements ApplicationListener
 
 		batch.setProjectionMatrix(camera2d.combined);
 		batch.begin();
+		
+		tex.draw(batch, 1);
+		
+		arrow1.draw(batch, 1);
+		arrow2.draw(batch, 1);
+		arrow3.draw(batch, 1);
+		arrow4.draw(batch, 1);
+		
+		
 		font.drawWrapped(batch, "Z: " + Float.toString(position.z), -screenX / 2, screenY / 2 - font.getAscent(), screenX);
 		font.drawWrapped(batch, "FPS: " + Integer.toString(Gdx.graphics.getFramesPerSecond()), -screenX / 2, screenY / 2 - font.getAscent(), screenX, HAlignment.RIGHT);
 		font3.setScale(0.5f);

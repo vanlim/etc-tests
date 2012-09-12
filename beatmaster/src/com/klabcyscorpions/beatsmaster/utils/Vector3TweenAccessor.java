@@ -1,4 +1,4 @@
-package interpolationtests;
+package com.klabcyscorpions.beatsmaster.utils;
 
 import aurelienribon.tweenengine.TweenAccessor;
 

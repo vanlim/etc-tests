@@ -1,4 +1,4 @@
-package com.cyscorpions.beatmaster.screens;
+package com.klabcyscorpions.beatsmaster.screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
@@ -10,7 +10,7 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.cyscorpions.beatmaster.BeatMaster;
+import com.klabcyscorpions.beatsmaster.BeatMaster;
 
 public class AbstractScreen implements Screen
 {
