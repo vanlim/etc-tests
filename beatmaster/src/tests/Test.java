@@ -1,14 +1,17 @@
 package tests;
 
+import interpolationtests.CatmullRomSpline;
+
 import java.util.ArrayList;
+import java.util.List;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.Input.Peripheral;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.Input.Peripheral;
 import com.badlogic.gdx.audio.AudioDevice;
 import com.badlogic.gdx.audio.analysis.KissFFT;
 import com.badlogic.gdx.audio.io.Mpg123Decoder;
@@ -24,10 +27,12 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.decals.Decal;
 import com.badlogic.gdx.graphics.g3d.decals.DecalBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Plane;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -52,6 +57,7 @@ public class Test extends Game implements InputProcessor
 	
 
 	private PerspectiveCamera camera;
+	private PerspectiveCamera camera2;
 	private OrthographicCamera camera2d;
 	private InputMultiplexer inputMultiplexer;
 
@@ -99,6 +105,11 @@ public class Test extends Game implements InputProcessor
 
 	private boolean finishSong = false;
 	private float lastDropTime = 0;
+	
+	CatmullRomSpline spline;
+	List<Vector3> curvePath;
+	Texture tunnelPanel;	
+	Vector3 curvePos;
 
 	public Test()
 	{
@@ -172,6 +183,12 @@ public class Test extends Game implements InputProcessor
 		camera.near = 0.1f;
 		camera.far = 10000f; // CHANGED ------------------------
 		camera.update(); // ADDED ------------------------
+		
+		camera2 = new PerspectiveCamera(120, 1000, 1000);
+		camera2.position.set(0, 0, 0);
+		camera2.near = 0.1f;
+		camera2.far = 1000;
+		
 		
 		laneGap = -3;
 		lanes = 4;
@@ -328,6 +345,36 @@ public class Test extends Game implements InputProcessor
 		
 		///////////////////////////////////////////////////////////////////////////////////
 		initParticles();
+		///////////////////////////////////////////////////////////////////////////////////
+		initTunnel();
+		
+	}
+	
+	int pathPointSize = 100;
+	int idx = 1;
+	Vector2 newPoint;
+	Vector3 upVector = new Vector3(0, 1, 0);
+	int length = 0;
+	List<Vector3> tangents;
+	Vector3 point2;
+	
+	public static Vector2 rotate(float x, float y, float a, float b, float angleDeg) {
+		   float cos = MathUtils.cosDeg(angleDeg);
+		   float sin = MathUtils.sinDeg(angleDeg);
+		   return new Vector2(cos*(x-a) - sin*(y-b) + a, sin*(x-a) + cos*(y-b) + b);
+	}
+	
+	private void initTunnel()
+	{
+		tunnelPanel = new Texture(Gdx.files.internal("data/libgdx.png"));
+		curvePos = new Vector3();
+		spline = new CatmullRomSpline();
+		curvePath = new ArrayList<Vector3>();
+		for (int i = 0; i < 5; i++)
+		{
+			spline.add(new Vector3(MathUtils.random(-worldWidth/4, worldWidth/4), MathUtils.random(-worldHeight/2, worldHeight/2), length -= 900));
+		}
+		spline.getPath(curvePath, pathPointSize);
 	}
 
 	private float avg(int pos, int nb)
@@ -532,12 +579,16 @@ public class Test extends Game implements InputProcessor
 	boolean up = true;
 	boolean down = true;
 	
+	float deltaTime;
+	
 	@Override
 	public void render()
 	{
+		deltaTime = Gdx.graphics.getDeltaTime();
+		
 		super.render();
 		
-//		Gdx.gl.glClearColor(0.1f, 0.1f, 0.1f, 1);
+		Gdx.gl.glClearColor(0.1f, 0.1f, 0.1f, 1);
 		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
 
 		if (Gdx.input.isPeripheralAvailable(Peripheral.Accelerometer))
@@ -578,6 +629,7 @@ public class Test extends Game implements InputProcessor
 		}
 		
 		camera.update();
+		camera2.update();
 		camera2d.update();
 		
 //		uiStage.act();
@@ -601,10 +653,10 @@ public class Test extends Game implements InputProcessor
 							{
 								button.hit = true;
 								tempBeat.pressOnce = true;
+								tempBeat.isPressed = true;
 //								Gdx.input.vibrate(100);
 								if (tempBeat.length > 0)
 								{
-									tempBeat.isPressed = true;
 									button.longPress = true;
 								}
 								else
@@ -663,7 +715,7 @@ public class Test extends Game implements InputProcessor
 				if ((TimeUtils.nanoTime() - lastDropTime > 370000000) && finishSong == false)
 				{
 					createSteps(MathUtils.random(1,100));
-					visualize();
+//					visualize();
 				}
 //				System.out.println("Drop.render() 1 " + maxValues[histoX]);
 			}
@@ -777,12 +829,104 @@ public class Test extends Game implements InputProcessor
 //		batch.end();
 //		
 		// 3D Game World - 3d Batches
+				
 		matrix2.setToRotation(0, 0,0,0);
 		batch.setTransformMatrix(matrix2);
+		batch.setProjectionMatrix(camera2.combined);
+		batch.begin();
+		batch.end();			
+		
+//		if (idx == ((spline.getControlPoints().size() - 2) * pathPointSize) + 2 - pathPointSize * 2)
+//		{
+//			if (spline.getControlPoints().size() > 4)
+//			{
+//				for (int x = 0; x < spline.getControlPoints().size() - 3; x++)
+//				{
+//					spline.getControlPoints().remove(x);
+//				}
+//			}
+//			idx = (spline.getControlPoints().size() - 2) * pathPointSize - pathPointSize * 2 + 2;
+//			curvePath.clear();
+//			spline.add(new Vector3(MathUtils.random(-worldWidth / 4, worldWidth / 4), MathUtils.random(-worldHeight / 2, worldHeight / 2), length -= 900));
+//			spline.getPath(curvePath, pathPointSize);
+//		}
+//
+//		tangents = spline.getTangents(pathPointSize);
+//
+//		float fade = 0.25f;
+//
+//		if (spline.getControlPoints().size() > 4)
+//		{
+//			for (int i = idx + pathPointSize; i > idx; i--)
+//			{
+//				Vector3 point = curvePath.get(i).cpy();
+//				Vector3 tempTan = tangents.get(i);
+//
+//				if (i % 20 == 0)
+//				{
+//					for (int x = 0; x < 12; x++)
+//					{
+//						float newAngle = x * 30;
+//						newPoint = rotate(point.x + 150, point.y, point.x, point.y, newAngle);
+//						dec = Decal.newDecal(new TextureRegion(tunnelPanel, 16, 16), true);
+//						dec.setScale(8, 4);
+//						dec.setColor(fade, fade, fade, 1);
+//						dec.setPosition(newPoint.x, newPoint.y + 80, point.z);
+//						dec.setRotation(tempTan, upVector);
+//						dec.rotateY(90);
+//						dec.rotateX(newAngle);
+//						decalBatch.add(dec);
+//						dec = null;
+//					}
+//					fade += 0.15f;
+//				}
+//				point = null;
+//				tempTan = null;
+//
+//			}
+//		}
+//
+//		if (spline.getControlPoints().size() > 4)
+//		{
+//			point2 = curvePath.get(idx).cpy();
+//
+//			float dist = curvePos.dst(point2);
+//			for (float i = 0.0f; i < 1.0; i += (1 * deltaTime) / dist)
+//			{
+//
+//				curvePos.lerp(point2, i);
+//				camera2.position.set(curvePos);
+//			}
+//
+//			camera2.direction.lerp(tangents.get(idx), deltaTime * 3);
+//
+//			if ((Math.abs(point2.x - curvePos.x) <= 10f && Math.abs(point2.y - curvePos.y) <= 10f) && idx < curvePath.size() - 2)
+//			{
+//				idx++;
+//			}
+//		}
+//		tangents.clear();
+//
+//		if (curvePos.z < -Integer.MAX_VALUE)
+//		{
+//			length = 0;
+//
+//			for (Vector3 tempPoint : spline.getControlPoints())
+//			{
+//				tempPoint.set(tempPoint.x, tempPoint.y, length -= 900);
+//			}
+//			curvePath.clear();
+//			spline.getPath(curvePath, pathPointSize);
+//		}
+//		decalBatch.flush();
+//		
+//		
+//		
+//		
 		batch.setProjectionMatrix(camera.combined);
 		batch.begin();
 		batch.end();	// CHANGED -------------------------------
-	
+		
 		for (int i = 0 ; i < laneSet.size(); i++)
 		{
 			dec = laneSet.get(i);
@@ -791,7 +935,7 @@ public class Test extends Game implements InputProcessor
 		
 		
 		k = 0; 
-		speed = 0.2f;
+		speed = 0.5f;
 		rate = distancePerSecond * Gdx.graphics.getDeltaTime()*speed;
 		for(int x = arrows.size()-1; x >=0 ; x--)
 		{
@@ -851,7 +995,10 @@ public class Test extends Game implements InputProcessor
 				arrows.remove(x);
 			}			
 		}
+		
 		decalBatch.flush();
+
+		
 		uiStage.draw();
 		
 //		for (int x = 0, i = 0; x < arrowButtons.size(); x++, i+=laneStep)

@@ -13,15 +13,16 @@ public class BeatMasterDesktop {
 	public static void main(String[] args) {
 		LwjglApplicationConfiguration cfg = new LwjglApplicationConfiguration();
 		cfg.title = "beatmaster";
-		cfg.useGL20 = false;
+//		cfg.useGL20 = false;
+//		cfg.useGL20 = true;
 		cfg.width = 800;
 		cfg.height = 480;
 		
 //		new LwjglApplication(new BeatMaster(), cfg);
-//		new LwjglApplication(new Test(), cfg);
+		new LwjglApplication(new Test(), cfg);
 //		new LwjglApplication(new Test2(), cfg);
 //		new LwjglApplication(new CurveTest(), cfg);
-		new LwjglApplication(new InterpolationTest(), cfg);
+//		new LwjglApplication(new InterpolationTest(), cfg);
 //		new LwjglApplication(new UITest(), cfg);
 	}
 }

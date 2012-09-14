@@ -7,6 +7,7 @@ import aurelienribon.tweenengine.Timeline;
 import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenEquations;
 import aurelienribon.tweenengine.TweenManager;
+import bloom.Bloom;
 
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
@@ -71,12 +72,17 @@ public class InterpolationTest implements ApplicationListener
 	BitmapFont font;
 	BitmapFont font2;
 	BitmapFont font3;
+	
+	Bloom bloom;
 
 	List<Vector3> curvePath;
 	
 	LanguagesManager lang;
 
 	int length = 0;
+	
+	float xRatio;
+	float yRatio;
 	
 	public InterpolationTest()
 	{
@@ -87,6 +93,9 @@ public class InterpolationTest implements ApplicationListener
 	{
 		screenX = Gdx.graphics.getWidth();
 		screenY = Gdx.graphics.getHeight();
+		
+		xRatio = 800/screenX;
+		yRatio = 480/screenY;
 
 		camera = new PerspectiveCamera(120, 1000, 1000);
 		camera.position.set(0, 0, 0);
@@ -137,7 +146,7 @@ public class InterpolationTest implements ApplicationListener
 			texSet.add(new TextureRegion(texture10));
 			
 		
-		TextureRegion texReg = new TextureRegion(texture, 0, 0, 512,275);
+		TextureRegion texReg = new TextureRegion(texture, 24, 15, 230 , 128);
 
 		decal = Decal.newDecal(texReg, true);
 
@@ -170,8 +179,6 @@ public class InterpolationTest implements ApplicationListener
 		
 		tex = new Image(texReg);
 		tex.setPosition(-screenX*2,-tex.getHeight()/2);
-		tex.setScaleY(1);
-		
 		arrow1 = new Image(texSet.get(0));
 		arrow1.setPosition(screenX*2, -arrow1.getHeight());
 		arrow2 = new Image(texSet.get(1));
@@ -188,7 +195,7 @@ public class InterpolationTest implements ApplicationListener
 		
 		Timeline.createSequence()
 			.push(Tween.to(tex, ImageAccessor.position_x, duration).target(-tex.getWidth()/2).ease(TweenEquations.easeInOutExpo))
-			
+			.pushPause(0.1f)
 			.beginParallel()
 				.push(Tween.to(tex, ImageAccessor.position_y, 1).target(0))
 				.push(Tween.to(arrow1, ImageAccessor.position_x, 1).target(-arrow1.getWidth()*2).ease(TweenEquations.easeInOutExpo).delay(delay+=0.1f))
@@ -196,6 +203,7 @@ public class InterpolationTest implements ApplicationListener
 				.push(Tween.to(arrow3, ImageAccessor.position_y, 1).target(-arrow2.getHeight()).ease(TweenEquations.easeInOutExpo).delay(delay+=0.1f))
 				.push(Tween.to(arrow4, ImageAccessor.position_x, 1).target(arrow4.getWidth()).ease(TweenEquations.easeInOutExpo).delay(delay+=0.1f))
 			.end()
+			.repeat(-1, 3)
 		.start(tweenManager);
 		
 	}
@@ -238,6 +246,7 @@ public class InterpolationTest implements ApplicationListener
 		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
 		Gdx.gl10.glClearColor(0.2f, 0.2f, 0.2f, 1);
 
+		
 		batch.setProjectionMatrix(camera.combined);
 		batch.begin();
 		batch.end();
@@ -460,6 +469,7 @@ public class InterpolationTest implements ApplicationListener
 
 		// decalBatch.add(decal);
 		decalBatch.flush();
+		
 
 		// batch.end();
 
@@ -474,13 +484,13 @@ public class InterpolationTest implements ApplicationListener
 		arrow4.draw(batch, 1);
 		
 		
-		font.drawWrapped(batch, "Z: " + Float.toString(position.z), -screenX / 2, screenY / 2 - font.getAscent(), screenX);
+//		font.drawWrapped(batch, "Z: " + Float.toString(position.z), -screenX / 2, screenY / 2 - font.getAscent(), screenX);
 		font.drawWrapped(batch, "FPS: " + Integer.toString(Gdx.graphics.getFramesPerSecond()), -screenX / 2, screenY / 2 - font.getAscent(), screenX, HAlignment.RIGHT);
-		font3.setScale(0.5f);
-		font3.drawWrapped(batch, "COMBO X2", -screenX / 2, font2.getCapHeight()/2, screenX, HAlignment.CENTER);
-		font3.setScale(0.4f);
-		font3.drawWrapped(batch, "PERFECT", -screenX / 2, 0, screenX, HAlignment.CENTER);
-		font2.drawWrapped(batch, lang.getString("Beatsmaster"), -screenX / 2, -screenY / 2 + font2.getCapHeight() + 5 , screenX, HAlignment.LEFT);
+//		font3.setScale(0.5f);
+//		font3.drawWrapped(batch, "COMBO X2", -screenX / 2, font2.getCapHeight()/2, screenX, HAlignment.CENTER);
+//		font3.setScale(0.4f);
+//		font3.drawWrapped(batch, "PERFECT", -screenX / 2, 0, screenX, HAlignment.CENTER);
+//		font2.drawWrapped(batch, lang.getString("Beatsmaster"), -screenX / 2, -screenY / 2 + font2.getCapHeight() + 5 , screenX, HAlignment.LEFT);
 		batch.end();
 	}
 
