@@ -2,12 +2,14 @@ package tests;
 
 import interpolationtests.CatmullRomSpline;
 
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.Input.Peripheral;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.InputProcessor;
@@ -35,6 +37,9 @@ import com.badlogic.gdx.math.Plane;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
+import com.badlogic.gdx.scenes.scene2d.Event;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputEvent.Type;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.TimeUtils;
 
@@ -110,6 +115,8 @@ public class Test extends Game implements InputProcessor
 	List<Vector3> curvePath;
 	Texture tunnelPanel;	
 	Vector3 curvePos;
+	
+	boolean autoPlayMode = true;
 
 	public Test()
 	{
@@ -130,6 +137,7 @@ public class Test extends Game implements InputProcessor
 		boolean pressOnce = false;
 		
 		ArrayList<Decal> decals = new ArrayList<Decal>();
+		ArrayList<Decal> r_decals = new ArrayList<Decal>(); // reflect
 	}
 
 	FPSLogger fpsLogger;
@@ -177,6 +185,7 @@ public class Test extends Game implements InputProcessor
 
 		camera = new PerspectiveCamera(67, worldWidth, worldHeight);
 		camera.position.set(0,-40 * vertRatio, 20 * vertRatio).mul(20);
+//		camera.position.set(40,0,0).mul(20);
 		camera.project(new Vector3(0, 0, 0), 0, 0, WIDTH, HEIGHT);
 		camera.lookAt(0, 0, 0);
 		camera.fieldOfView = 67;
@@ -255,7 +264,7 @@ public class Test extends Game implements InputProcessor
 			arrowTemp.setFilter(TextureFilter.Linear, TextureFilter.Linear);
 			arrow = arrowTemp;
 			// CHANGED ---------------------------
-			buttons.add(new ArrowButton(arrow, name[i], camera, x - laneSize / 2 - laneSpan / 2 + laneStep / 2,buttonLocation.y,0,arrow.getWidth(),arrow.getHeight(), 1, 1, horizRatio, vertRatio));
+			buttons.add(new ArrowButton(i, arrow, name[i], camera, x - laneSize / 2 - laneSpan / 2 + laneStep / 2,buttonLocation.y,0,arrow.getWidth(),arrow.getHeight(), 1, 1, horizRatio, vertRatio));
 		}	
 		for (int i = 0; i < buttons.size(); i++)
 		{
@@ -265,7 +274,7 @@ public class Test extends Game implements InputProcessor
 		//lane textures
 		arrayTex = new ArrayList<TextureRegion>();
 		laneSet = new ArrayList<Decal>();
-		name = new String[] { "yellow", "blue", "red", "green" };
+		name = new String[] { "red", "green", "blue", "yellow" };
 		for (int i = 0; i < 4; i++)
 		{
 			texture = new Texture(Gdx.files.internal("texture/test/" + name[i] + "lane.png"));
@@ -273,9 +282,16 @@ public class Test extends Game implements InputProcessor
 			textureRegion = new TextureRegion(texture, 0, 0, 64, 64);
 			arrayTex.add(textureRegion);
 		}
+		for (int i = 0; i < 4; i++)
+		{
+			texture = new Texture(Gdx.files.internal("texture/test/" + name[i] + "light.png"));
+			texture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
+			textureRegion = new TextureRegion(texture, 0, 0, 64, 64);
+			arrayTex.add(textureRegion);
+		}
 //		for (int y = (int) worldEnd; y < laneLength; y += 64*vertRatio) // CHANGED ------------------------
 //		{
-			for (int i = 0, x = 0; i < arrayTex.size(); x += laneStep, i++)
+			for (int i = 0, x = 0; i < 4; x += laneStep, i++)
 			{
 				TextureRegion temp = arrayTex.get(i);
 				dec = Decal.newDecal(64,laneLength-worldEnd,temp,true);
@@ -283,7 +299,18 @@ public class Test extends Game implements InputProcessor
 				dec.setScale(3*horizRatio, vertRatio);
 				laneSet.add(dec);	
 			}
-//		}	
+			
+//		}			
+		
+		for (int i = 0, x = 0; i < 4; x += laneStep, i++)
+		{
+			TextureRegion temp = arrayTex.get(i+4);
+			dec = Decal.newDecal(64,laneLength-worldEnd,temp,true);
+			dec.setPosition(x - laneSize / 2 - laneSpan / 2 + laneStep/2, -worldEnd, 0); // CHANGED ------------------------
+			dec.setScale(3*horizRatio, vertRatio);
+			laneSet.add(dec);	
+		}
+		
 		arrayTex.clear();
 		arrayTex = null;
 		
@@ -348,6 +375,8 @@ public class Test extends Game implements InputProcessor
 		///////////////////////////////////////////////////////////////////////////////////
 		initTunnel();
 		
+		lateFlush = new ArrayList<Decal>();
+		
 	}
 	
 	int pathPointSize = 100;
@@ -372,7 +401,8 @@ public class Test extends Game implements InputProcessor
 		curvePath = new ArrayList<Vector3>();
 		for (int i = 0; i < 5; i++)
 		{
-			spline.add(new Vector3(MathUtils.random(-worldWidth/4, worldWidth/4), MathUtils.random(-worldHeight/2, worldHeight/2), length -= 900));
+//			spline.add(new Vector3(MathUtils.random(-worldWidth/4, worldWidth/4), MathUtils.random(-worldHeight/2, worldHeight/2), length -= 900));
+			spline.add(new Vector3(0,0,length-=900));
 		}
 		spline.getPath(curvePath, pathPointSize);
 	}
@@ -454,17 +484,17 @@ public class Test extends Game implements InputProcessor
 								{
 									switch(tempBeat.type)
 									{
-										case 0:
-											dec.setColor(1, 0.9f, 0.3f, 1);
-											break;
-										case 1:
-											dec.setColor(0.3f, 0.6f, 1, 1);
-											break;
-										case 2:
+										case 0: // red
 											dec.setColor(1, 0.3f, 0.3f, 1);
 											break;
-										case 3:
+										case 1: // green
 											dec.setColor(0.5f, 1, 0.3f, 1);
+											break;
+										case 2: // blue
+											dec.setColor(0.3f, 0.6f, 1, 1);
+											break;
+										case 3: // yellow
+											dec.setColor(1, 0.9f, 0.3f, 1);
 											break;
 									}
 								}
@@ -511,29 +541,37 @@ public class Test extends Game implements InputProcessor
 		arrowBeat = new Arrow();
 		float frequency =  MathUtils.PI*2/100;
 		int seed = MathUtils.random(0,3);
+		Decal dec2;
 		for(int x= 0; x < length; x++)
 		{
 			if (x > 0)
 			{
 				dec = Decal.newDecal(64, 64, arrowSet.get(seed + 4), true);
+				dec2 = Decal.newDecal(64, 64, arrowSet.get(seed + 4), true);
 				dec.setColor(Math.abs(MathUtils.sin(frequency*x+2)), Math.abs(MathUtils.sin(frequency*x+0)),  Math.abs(MathUtils.sin(frequency*x+4)), 1f);
+				dec2.setColor(Math.abs(MathUtils.sin(frequency*x+2))/2, Math.abs(MathUtils.sin(frequency*x+0))/2,  Math.abs(MathUtils.sin(frequency*x+4))/2, 0.1f);
 			}
 			else
 			{
 				dec = Decal.newDecal(64, 64, arrowSet.get(seed), true);
+				dec2 = Decal.newDecal(64, 64, arrowSet.get(seed), true);
+				dec2.setColor(1/3f, 1/3f, 1/3f, 0.1f);
 			}
 			dec.rotateX(60);
 			dec.setScale(3*horizRatio, 3*vertRatio);
 			arrowBeat.length = x;
 			arrowBeat.decals.add(dec);
+			dec2.rotateX(-120);
+			dec2.setScale(3*horizRatio, 3*vertRatio);
+			arrowBeat.r_decals.add(dec2);
 		}
 		arrowBeat.type = seed;
-		arrowBeat.x = (laneStep * seed) - laneSize / 2 - laneSpan / 2 + laneStep / 2; // CHANGED ------------------------			
+		arrowBeat.x = (laneStep * seed) - laneSize / 2 - laneSpan / 2 + laneStep / 2; // CHANGED ------------------------
+		arrowBeat.y = 0;
 		arrowBeat.trailSpacing = 10 * vertRatio;
 		arrowBeat.beatVeloc = 0;
 		arrows.add(arrowBeat);	
-		lastDropTime = TimeUtils.nanoTime();
-		
+		lastDropTime = TimeUtils.nanoTime();		
 	}
 	
 	public static Vector3 touchPoint = new Vector3();
@@ -581,14 +619,16 @@ public class Test extends Game implements InputProcessor
 	
 	float deltaTime;
 	
+	ArrayList<Decal> lateFlush;
+	
 	@Override
 	public void render()
 	{
 		deltaTime = Gdx.graphics.getDeltaTime();
-		
+				
 		super.render();
 		
-		Gdx.gl.glClearColor(0.1f, 0.1f, 0.1f, 1);
+		Gdx.gl.glClearColor(0.2f, 0.2f, 0.2f, 1);
 		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
 
 		if (Gdx.input.isPeripheralAvailable(Peripheral.Accelerometer))
@@ -634,13 +674,15 @@ public class Test extends Game implements InputProcessor
 		
 //		uiStage.act();
 		
-		//input processing
-		if(Gdx.input.isTouched())
-		{
+
+		
+			
+		
 			for(ArrowButton button : buttons)
 			{
 				if(button.isPressed() && button.pressOnce == false)
 				{
+					lateFlush.add(laneSet.get(button.id+4));							
 					temp = getPointOnPlane(button.getWorldPosition().x, button.getWorldPosition().y);
 					for(int x = 0; x < arrows.size() ; x++)
 					{
@@ -661,29 +703,32 @@ public class Test extends Game implements InputProcessor
 								}
 								else
 								{
-									
 									arrows.remove(tempBeat);
-								}
+								}								
 							}
 						}
 						tempBeat = null;
 					}
-					button.pressOnce = true;
+					button.pressOnce = true;					
 				}
-				if(button.isPressed() == false)
+				if(!button.isPressed())
 				{
 					button.pressOnce = false;
 					button.hit = false;
-				}
+					lateFlush.remove(laneSet.get(button.id+4));
+				}				
 			}
-		}
-		else
-		{
+//		}
+//		else
+//		{
 			for(ArrowButton button : buttons)
 			{
-				button.pressOnce = false;
+				if(!button.isPressed()){
+					button.pressOnce = false;
+					lateFlush.remove(laneSet.get(button.id+4));
+				}
 			}
-		}
+//		}
 		
 		checkLongBeat();
 		
@@ -714,7 +759,7 @@ public class Test extends Game implements InputProcessor
 				maxValues[histoX] = avg(histoX, nb);
 				if ((TimeUtils.nanoTime() - lastDropTime > 370000000) && finishSong == false)
 				{
-					createSteps(MathUtils.random(1,100));
+					createSteps(MathUtils.random(1));
 //					visualize();
 				}
 //				System.out.println("Drop.render() 1 " + maxValues[histoX]);
@@ -738,6 +783,8 @@ public class Test extends Game implements InputProcessor
 			
 			maxValues[histoX] -= (1.0 / 3.0);
 		}
+		
+		
 		
 //		String lyrics = "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG.";
 //		String[] words = lyrics.split(" ");
@@ -836,90 +883,92 @@ public class Test extends Game implements InputProcessor
 		batch.begin();
 		batch.end();			
 		
-//		if (idx == ((spline.getControlPoints().size() - 2) * pathPointSize) + 2 - pathPointSize * 2)
-//		{
-//			if (spline.getControlPoints().size() > 4)
-//			{
-//				for (int x = 0; x < spline.getControlPoints().size() - 3; x++)
-//				{
-//					spline.getControlPoints().remove(x);
-//				}
-//			}
-//			idx = (spline.getControlPoints().size() - 2) * pathPointSize - pathPointSize * 2 + 2;
-//			curvePath.clear();
+		if (idx == ((spline.getControlPoints().size() - 2) * pathPointSize) + 2 - pathPointSize * 2)
+		{
+			if (spline.getControlPoints().size() > 4)
+			{
+				for (int x = 0; x < spline.getControlPoints().size() - 3; x++)
+				{
+					spline.getControlPoints().remove(x);
+				}
+			}
+			idx = (spline.getControlPoints().size() - 2) * pathPointSize - pathPointSize * 2 + 2;
+			curvePath.clear();
 //			spline.add(new Vector3(MathUtils.random(-worldWidth / 4, worldWidth / 4), MathUtils.random(-worldHeight / 2, worldHeight / 2), length -= 900));
-//			spline.getPath(curvePath, pathPointSize);
-//		}
-//
-//		tangents = spline.getTangents(pathPointSize);
-//
-//		float fade = 0.25f;
-//
-//		if (spline.getControlPoints().size() > 4)
-//		{
-//			for (int i = idx + pathPointSize; i > idx; i--)
-//			{
-//				Vector3 point = curvePath.get(i).cpy();
-//				Vector3 tempTan = tangents.get(i);
-//
-//				if (i % 20 == 0)
-//				{
-//					for (int x = 0; x < 12; x++)
-//					{
-//						float newAngle = x * 30;
-//						newPoint = rotate(point.x + 150, point.y, point.x, point.y, newAngle);
-//						dec = Decal.newDecal(new TextureRegion(tunnelPanel, 16, 16), true);
-//						dec.setScale(8, 4);
-//						dec.setColor(fade, fade, fade, 1);
-//						dec.setPosition(newPoint.x, newPoint.y + 80, point.z);
-//						dec.setRotation(tempTan, upVector);
-//						dec.rotateY(90);
-//						dec.rotateX(newAngle);
-//						decalBatch.add(dec);
-//						dec = null;
-//					}
-//					fade += 0.15f;
-//				}
-//				point = null;
-//				tempTan = null;
-//
-//			}
-//		}
-//
-//		if (spline.getControlPoints().size() > 4)
-//		{
-//			point2 = curvePath.get(idx).cpy();
-//
-//			float dist = curvePos.dst(point2);
-//			for (float i = 0.0f; i < 1.0; i += (1 * deltaTime) / dist)
-//			{
-//
-//				curvePos.lerp(point2, i);
-//				camera2.position.set(curvePos);
-//			}
-//
+			spline.add(new Vector3(0,0,length-=900));
+			spline.getPath(curvePath, pathPointSize);
+		}
+
+		tangents = spline.getTangents(pathPointSize);
+
+		float fade = 0.25f;
+
+		if (spline.getControlPoints().size() > 4)
+		{
+			for (int i = idx + pathPointSize; i > 0; i--)
+			{
+				Vector3 point = curvePath.get(i).cpy();
+				Vector3 tempTan = tangents.get(i);
+
+				if (i % 20 == 0)
+				{
+					for (int x = 0; x < 7; x++)
+					{
+						float newAngle = x * 30;
+						newPoint = rotate(point.x + 150, point.y, point.x, point.y, newAngle);
+						dec = Decal.newDecal(new TextureRegion(tunnelPanel, 16, 16), true);
+						dec.setScale(8, 4);
+						dec.setColor(fade, fade, fade, 1);
+						dec.setPosition(newPoint.x, newPoint.y-80, point.z);
+						dec.setRotation(tempTan, upVector);
+						dec.rotateY(90);
+						dec.rotateX(newAngle);
+						decalBatch.add(dec);
+						dec = null;
+					}
+					fade += 0.15f;
+				}
+				point = null;
+				tempTan = null;
+
+			}
+		}
+
+		if (spline.getControlPoints().size() > 4)
+		{
+			point2 = curvePath.get(idx).cpy();
+
+			float dist = curvePos.dst(point2);
+			for (float i = 0.0f; i < 1.0; i += (1 * deltaTime) / dist)
+			{
+
+				curvePos.lerp(point2, i);
+				camera2.position.set(curvePos);
+			}
+
 //			camera2.direction.lerp(tangents.get(idx), deltaTime * 3);
-//
-//			if ((Math.abs(point2.x - curvePos.x) <= 10f && Math.abs(point2.y - curvePos.y) <= 10f) && idx < curvePath.size() - 2)
-//			{
-//				idx++;
-//			}
-//		}
-//		tangents.clear();
-//
-//		if (curvePos.z < -Integer.MAX_VALUE)
-//		{
-//			length = 0;
-//
-//			for (Vector3 tempPoint : spline.getControlPoints())
-//			{
-//				tempPoint.set(tempPoint.x, tempPoint.y, length -= 900);
-//			}
-//			curvePath.clear();
-//			spline.getPath(curvePath, pathPointSize);
-//		}
-//		decalBatch.flush();
-//		
+			camera2.direction.set(0,-4,-3);
+
+			if ((Math.abs(point2.x - curvePos.x) <= 10f && Math.abs(point2.y - curvePos.y) <= 10f) && idx < curvePath.size() - 2)
+			{
+				idx++;
+			}
+		}
+		tangents.clear();
+
+		if (curvePos.z < -Integer.MAX_VALUE)
+		{
+			length = 0;
+
+			for (Vector3 tempPoint : spline.getControlPoints())
+			{
+				tempPoint.set(tempPoint.x, tempPoint.y, length -= 900);
+			}
+			curvePath.clear();
+			spline.getPath(curvePath, pathPointSize);
+		}
+		decalBatch.flush();
+		
 //		
 //		
 //		
@@ -927,13 +976,19 @@ public class Test extends Game implements InputProcessor
 		batch.begin();
 		batch.end();	// CHANGED -------------------------------
 		
-		for (int i = 0 ; i < laneSet.size(); i++)
+		for (int i = 0 ; i < 4; i++)
 		{
 			dec = laneSet.get(i);
-			decalBatch.add(dec);				
+			decalBatch.add(dec);	
+			dec = null;
 		}
-		
-		
+		for (int i = 0 ; i < lateFlush.size(); i++)
+		{
+			dec = lateFlush.get(i);
+			dec.setBlending(GL10.GL_SRC_ALPHA, GL10.GL_ONE);
+			decalBatch.add(dec);
+			dec = null;
+		}
 		k = 0; 
 		speed = 0.5f;
 		rate = distancePerSecond * Gdx.graphics.getDeltaTime()*speed;
@@ -950,7 +1005,7 @@ public class Test extends Game implements InputProcessor
 				{
 					Decal dec = beat.decals.get(i);
 					dec.setPosition(beat.x, laneLength, beat.z - (-beat.length + k++) * beat.trailSpacing); // CHANGED
-					decalBatch.add(dec);
+					decalBatch.add(dec);					
 					dec = null;
 				}
 				if(beat.z<=0)
@@ -969,6 +1024,7 @@ public class Test extends Game implements InputProcessor
 				for (int i = decalSize; i >= 0; i--)
 				{
 					Decal dec = beat.decals.get(i);
+					Decal rdec = beat.r_decals.get(i);
 					if (dec.getZ() > 0)
 					{
 						dec.setPosition(beat.x, laneLength, laneLength - beat.trailVeloc - (-beat.length + k++) * beat.trailSpacing); // CHANGED
@@ -978,27 +1034,67 @@ public class Test extends Game implements InputProcessor
 					else
 					{
 						dec.setPosition(beat.x, beat.y - (-beat.length + k++) * beat.trailSpacing, 0); // CHANGED
+						rdec.setPosition(dec.getPosition().x,dec.getPosition().y-96,-96*(5f/3f));
+						decalBatch.add(rdec);
 					}
 					decalBatch.add(dec);
+					rdec = null;
 					dec = null;
 				}			
-			}
-			beat = null;
-		}
-		
-		for(int x = 0; x < arrows.size(); x++)
-		{
-			Arrow beat = arrows.get(x);
+			}			
 			if (laneLength - beat.beatVeloc + (beat.length * beat.trailSpacing) < worldEnd) // CHANGED
 			{
 				arrows.set(x, null); // CHANGED --------------------------
 				arrows.remove(x);
-			}			
+			}
+			beat = null;
 		}
+		
+//		for(int x = 0; x < arrows.size(); x++)
+//		{
+//			Arrow beat = arrows.get(x);
+//			if (laneLength - beat.beatVeloc + (beat.length * beat.trailSpacing) < worldEnd) // CHANGED
+//			{
+//				arrows.set(x, null); // CHANGED --------------------------
+//				arrows.remove(x);
+//			}			
+//		}
 		
 		decalBatch.flush();
 
-		
+		if (autoPlayMode)
+		{
+			for (ArrowButton button : buttons)
+			{
+				Vector3 atemp = button.getWorldPosition().cpy();
+				camera.unproject(atemp);
+				atemp.set(atemp.x - laneStep / 2, atemp.x + laneStep / 2, 0);
+				for (int x = 0; x < arrows.size(); x++)
+				{
+					Arrow tempBeat = arrows.get(x);
+					arrowRange = tempBeat.x;
+					arrowDist = tempBeat.y;
+					if (tempBeat.y >= lowerBound && tempBeat.y <= buttonLocation.y && tempBeat.decals.size() > 0)
+					{
+						if (arrowRange > atemp.x && arrowRange < atemp.y)
+						{
+							uiStage.touchDown((int) button.getWorldPosition().x, (int) (HEIGHT - button.getWorldPosition().y), button.id, Buttons.LEFT);
+							button.lastTimePressed = TimeUtils.nanoTime();
+							button.delay = true;
+						}
+					}
+				}
+			}
+
+			for (ArrowButton button : buttons)
+			{
+				if (TimeUtils.nanoTime() - button.lastTimePressed > 10000L && button.lastTimePressed != 0 && button.delay && !button.longPress)
+				{
+					button.delay = false;
+					uiStage.touchUp((int) button.getWorldPosition().x, (int) (HEIGHT - button.getWorldPosition().y), button.id, Buttons.LEFT);
+				}
+			}
+		}
 		uiStage.draw();
 		
 //		for (int x = 0, i = 0; x < arrowButtons.size(); x++, i+=laneStep)
@@ -1041,7 +1137,7 @@ public class Test extends Game implements InputProcessor
 ////		 -texture.getRegionHeight() / 2);
 		
 	}
-
+	
 	@Override
 	public void dispose()
 	{

@@ -66,7 +66,7 @@ public class Test2 extends Game implements InputProcessor
 		texture = new Texture(Gdx.files.internal("texture/step_right_nocolor.png"));
 		texture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
 		
-		arrowButton = new ArrowButton(texture, "left",camera, 0, 0, 0, 128, 128, 1, 1, horizRatio, vertRatio);
+		arrowButton = new ArrowButton(0, texture, "left",camera, 0, 0, 0, 128, 128, 1, 1, horizRatio, vertRatio);
 		
 		uiStage.addActor(arrowButton);
 		

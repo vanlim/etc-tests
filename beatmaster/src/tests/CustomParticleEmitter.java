@@ -7,6 +7,7 @@ import java.io.Writer;
 import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.TextureData;
+import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
@@ -592,6 +593,7 @@ public class CustomParticleEmitter
 			float originX = sprite.getOriginX();
 			float originY = sprite.getOriginY();
 			Texture texture = sprite.getTexture();
+			texture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
 			for (int i = 0, n = particles.length; i < n; i++) {
 				Particle particle = particles[i];
 				if (particle == null) break;

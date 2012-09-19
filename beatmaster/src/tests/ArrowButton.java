@@ -25,14 +25,20 @@ public class ArrowButton extends Actor
 	private Vector2 ratio = new Vector2(0, 0);
 
 	private PerspectiveCamera camera;
+	
+	public int id = 0;
 
-	private boolean isPressed = false;
+	boolean isPressed = false;
 	boolean pressOnce = false;
 	boolean hit;
 	boolean longPress;
 	boolean touchDown;
 	boolean touchUp;
+	
+	boolean delay;
 
+	long lastTimePressed;
+	
 	private TextureRegion textureRegion;
 
 	String name;
@@ -48,10 +54,12 @@ public class ArrowButton extends Actor
 	FileHandle effectFile;
 	FileHandle effectImgDir;
 
-	public ArrowButton(Texture texture, String name, PerspectiveCamera camera, float x, float y, float z, float width, float height, float scaleX,
+	public ArrowButton(int id,Texture texture, String name, PerspectiveCamera camera, float x, float y, float z, float width, float height, float scaleX,
 			float scaleY, float horizRatio, float vertRatio)
 	{
 		this.camera = camera;
+		
+		this.id = id;
 
 		position.x = x;
 		position.y = y;
